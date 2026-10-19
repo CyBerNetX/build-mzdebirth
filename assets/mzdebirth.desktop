@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=MzDebirth
+Comment=Korg Mz-series vintage synth collection
+Exec=mzdebirth
+Icon=mzdebirth
+Categories=Audio;AudioVideo;
+Terminal=false

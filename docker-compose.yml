@@ -1,0 +1,45 @@
+# ~/Devel/Build_MzDebirth/docker-compose.yml
+services:
+  build:
+    image: ubuntu:22.04
+    container_name: mzdebirth-build
+    environment:
+      DEBIAN_FRONTEND: noninteractive
+    volumes:
+      - ./srcs:/src
+      - ./out:/out
+      - ./assets:/assets:ro
+    command: >
+      bash -c "
+      exec > >(tee -a /out/build.log) 2>&1 ;
+      set -ex ;
+      echo \"=== Build start: \$$(date) ===\" ;
+      apt-get update && sleep 2 &&
+      apt-get install -y --no-install-recommends curl build-essential cmake git ca-certificates dpkg-dev libasound2-dev libfreetype-dev libfontconfig1-dev zlib1g-dev libbz2-dev libpng-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libwebkit2gtk-4.0-dev libcurl4-openssl-dev || exit 1 ;
+      echo \"=== Paquets installés ===\" &&
+      cd /src &&
+      [ -d JUCE/.git ] || git clone --depth 1 https://github.com/juce-framework/JUCE;
+      for r in Mz101 Mz303 Mz808 Mz909 Mz950 MzPCF MzDebirth; do
+        [ -d $$r/.git ] || git clone https://github.com/simozzer/$$r.git;
+      done &&
+      (cd JUCE && git checkout --depth 1 7.0.x 2>/dev/null || true) &&
+      cd /src/MzDebirth && 
+      VER=\$$(curl -s https://api.github.com/repos/simozzer/MzDebirth/releases/latest | grep '\"tag_name\"' | cut -d'\"' -f4 | sed 's/^v//') &&
+      echo \"Version retenue: \$$VER\" &&
+      rm -rf build &&
+      cmake -S . -B build -DCMAKE_BUILD_TYPE=Release &&
+      cmake --build build -j\$$(nproc) &&
+      rm -rf pkg && mkdir -p pkg/DEBIAN pkg/usr/bin pkg/usr/share/applications &&
+      install -m 755 build/MzDebirth_artefacts/Release/Standalone/MzDebirth pkg/usr/bin/mzdebirth &&
+      sed \"s/@VERSION@/\$$VER/\" /assets/control > pkg/DEBIAN/control &&
+      cp /assets/mzdebirth.desktop pkg/usr/share/applications/ &&
+      dpkg-deb --build --root-owner-group pkg /out/mzdebirth_\$${VER}_amd64.deb &&
+      echo \"=== GLIBC max requis ===\" &&
+      echo \"=== Build OK: mzdebirth_\$${VER}_amd64.deb ===\" &&
+      dpkg-deb --fsys-tarfile /out/MzDebirth_\$${VER}_amd64.deb | tar -xO ./usr/bin/mzdebirth > /tmp/c && chmod +x /tmp/c &&
+      objdump -T /tmp/c | grep -oE 'GLIBC_[0-9.]+' | sort -uV | tail -1;
+      echo \"=== Build end: \$$(date) ===\";
+      echo \"\$$VER \$$(date -Is)\" >> /out/build-history.txt
+      "
+    entrypoint: [""]
+

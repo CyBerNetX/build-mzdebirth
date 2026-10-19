@@ -1,0 +1,9 @@
+# Sources clonées automatiquement par le compose
+srcs/
+
+# Artefacts de build (binaires, logs)
+out/*.deb
+out/build.log
+
+# Garder quand même l'historique des versions buildées
+!out/build-history.txt

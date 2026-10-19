@@ -1,0 +1,11 @@
+Package: mzdebirth
+Version: @VERSION@
+Section: sound
+Priority: optional
+Architecture: amd64
+Depends: libfontconfig1, libfreetype6, libasound2, libstdc++6, libexpat1, zlib1g, libbz2-1.0, libpng16-16, libbrotli1, libx11-6
+Maintainer: jbmasurel <cybernetx@cybermazout.net>
+Description: MzDebirth - Korg Mz-series vintage synth collection
+ Standalone emulation of the Korg Mz-series synthesizers
+ (Mz101, Mz303, Mz808, Mz909, Mz950, PCF). Built with JUCE.
+ 
